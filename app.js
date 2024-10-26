@@ -5,7 +5,7 @@ const cors = require("cors");
 const indexRouter = require("./routes/index");
 const app = express();
 
-require("dotenv").config(); // 환경변수(.env파일) 가져오기
+require("dotenv").config({ debug: true }); // 환경변수(.env파일) 가져오기
 
 app.use(cors()); // CORS 미들웨어 설정
 app.use(bodyParser.urlencoded({ extended: false }));
