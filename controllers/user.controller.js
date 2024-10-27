@@ -33,12 +33,13 @@ userController.getUser = async (req, res) => {
     const { userId } = req;
     const user = await User.findById(userId);
 
+    // 유저가 찾아지지않을때조건을 먼저찾아 더이상 요청하지않도록 변경
     if (!user) {
       throw new Error("can not find user");
     }
     res.status(200).json({ status: "success", user });
 
-    // 중복 요청
+    // 계속 중복 요청을해서 ERR_HTTP_HEADERS_SENT에러발생시킴 (* only one response is sent per request!)
     // if (user) {
     //   res.status(200).json({ status: "success", user });
     // }
