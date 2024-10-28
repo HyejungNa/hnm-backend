@@ -24,7 +24,7 @@ authController.loginWithEmail = async (req, res) => {
   }
 };
 
-// 중간에 사용되기에(미들웨어) next필요함
+// 중간에 사용되기에(미들웨어) next사용함
 authController.authenticate = async (req, res, next) => {
   try {
     const tokenString = req.headers.authorization;
@@ -34,7 +34,19 @@ authController.authenticate = async (req, res, next) => {
       if (error) throw new Error("invalid token");
       req.userId = payload._id;
     });
-    next(); // 미들웨어에서의 다음 함수로 넘어가게끔해줌 (user.api.js파일안 userController.getUser함수로 넘어가게됨)
+    next(); // 미들웨어에서의 다음 함수(checkAdminPermission)로 넘어가게끔해줌 (user.api.js파일안 userController.getUser함수로 넘어가게됨)
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+authController.checkAdminPermission = async (req, res, next) => {
+  try {
+    // 토큰값으로 admin인지 구별가능
+    const { userId } = req;
+    const user = await User.findById(userId);
+    if (user.level !== "admin") throw new Error("No permission");
+    next();
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }
