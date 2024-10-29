@@ -11,4 +11,7 @@ router.post(
   productController.createProduct
 );
 
+// 상품 보여주기
+router.get("/", productController.getProducts);
+
 module.exports = router;
