@@ -91,4 +91,30 @@ productController.getProducts = async (req, res) => {
   }
 };
 
+productController.updateProduct = async (req, res) => {
+  try {
+    const productId = req.params.id; // product.api에서 이미 id값을 받아오고있음
+    const {
+      sku,
+      name,
+      size,
+      image,
+      price,
+      description,
+      category,
+      stock,
+      status,
+    } = req.body;
+
+    const product = await Product.findByIdAndUpdate(
+      { _id: productId },
+      { sku, name, size, image, price, description, category, stock, status },
+      { new: true } // 업데이트한 후 새로운값을 반환해줌
+    );
+    if (!product) throw new Error("item doesn't exist");
+    res.status(200).json({ status: "success", data: product });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
 module.exports = productController;
