@@ -125,7 +125,7 @@ productController.updateProduct = async (req, res) => {
 productController.deleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findByIdAndUpdate(
+    const product = await Product.findByIdAndDelete(
       { _id: productId },
       { isDeleted: true }
     );
