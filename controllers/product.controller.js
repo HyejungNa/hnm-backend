@@ -125,6 +125,7 @@ productController.updateProduct = async (req, res) => {
 productController.deleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+    // findByIdAndUpdate 대신 db에서도 실제로 삭제되도록 메소드 변경
     const product = await Product.findByIdAndDelete(
       { _id: productId },
       { isDeleted: true }
