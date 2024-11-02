@@ -137,4 +137,22 @@ productController.deleteProduct = async (req, res) => {
   }
 };
 
+// 상품 상세페이지
+productController.getProductDetail = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const productDetail = await Product.findById({ _id: productId });
+    if (!productDetail) {
+      const error = new Error("No item found.");
+      error.status = 400;
+      return next(error);
+    }
+
+    res.status(200).json({ status: "success", data: productDetail });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
 module.exports = productController;
