@@ -30,4 +30,7 @@ router.delete(
   productController.deleteProduct
 );
 
+// 상품 상세페이지
+router.get("/:id", productController.getProductDetail);
+
 module.exports = router;
