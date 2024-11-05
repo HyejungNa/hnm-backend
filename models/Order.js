@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("./User");
 const Product = require("./Product");
+const Cart = require("./Cart");
 const Schema = mongoose.Schema;
 const orderSchema = Schema(
   {
@@ -36,6 +37,14 @@ orderSchema.methods.toJSON = function () {
   delete obj.createdAt;
   return obj; // 위의조건들을 모두 제거한후 object를 리턴함
 };
+
+// 카트 비워주기
+orderSchema.post("save", async function () {
+  // 오더가 save된후에는 카트를 비워주기
+  const cart = await Cart.findOne({ userId: this.userId }); // 내 카트를 찾아준후
+  cart.items = []; // 찾은 카트를 비워주고
+  await cart.save(); // 저장해주기
+});
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;
