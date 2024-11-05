@@ -155,4 +155,46 @@ productController.getProductDetail = async (req, res, next) => {
   }
 };
 
+// 오더하기전 아이템 하나씩 가져와서 체크
+productController.checkStock = async (item) => {
+  // 내가 사려는 아이템 재고 정보 들고오기
+  const product = await Product.findById(item.productId);
+  // 내가 사려는 아이템 qty, 재고 비교
+  if (product.stock[item.size] < item.qty) {
+    // 재고가 불충분하면 불충분 메시지와 함께 데이터 반환
+    return {
+      isVerify: false,
+      // message: `${product.name}의 ${item.size}재고가 부족합니다`,
+      message: `The stock of '${product.name}' in size '${item.size}' is insufficient.`,
+    };
+  }
+
+  // 아이템의 재고가 충분하다면 실행
+  const newStock = { ...product.stock };
+  newStock[item.size] -= item.qty;
+  product.stock = newStock;
+
+  await product.save();
+  // 충분하다면, 재고에서 qty를 빼고 성공결과를 보내기
+  return { isVerify: true };
+};
+
+// 오더하기전 전체 아이템 리스트 체크하기
+productController.checkItemListStock = async (itemList) => {
+  const insufficientStockItems = []; // 재고가 불충분한 아이템을 저장할 예정
+
+  // 재고 확인 로직
+  await Promise.all(
+    itemList.map(async (item) => {
+      const stockCheck = await productController.checkStock(item);
+      if (!stockCheck.isVerify) {
+        insufficientStockItems.push({ item, message: stockCheck.message });
+      }
+      return stockCheck;
+    })
+  ); // 비동기(await)를 여러개 사용시 한번에 처리하고싶을때 Promise.all사용
+
+  return insufficientStockItems;
+};
+
 module.exports = productController;
