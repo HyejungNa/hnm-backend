@@ -17,7 +17,7 @@ router.delete(
 // 카트 아이템 수정하기
 router.put("/:id", authController.authenticate, cartController.updateQty);
 
-// 카트의 전체아이템 총 갯수 가져오기
+// 카트의 전체아이템 총 갯수를 가져옴
 router.get("/qty", authController.authenticate, cartController.getCartQty);
 
 module.exports = router;

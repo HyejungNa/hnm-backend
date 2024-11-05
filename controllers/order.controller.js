@@ -33,7 +33,10 @@ orderController.createOrder = async (req, res) => {
       orderNum: randomStringGenerator(), // 랜덤한 오더넘버 만들어주는 함수
     });
 
+    // 새 오더 save해주기
     await newOrder.save();
+    // save후에 카트를 비워주기
+
     // 주문 완료후 생성된 오더넘버 넘겨주기
     res.status(200).json({ status: "success", orderNum: newOrder.orderNum });
   } catch (error) {
