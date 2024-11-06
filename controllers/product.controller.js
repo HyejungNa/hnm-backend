@@ -203,7 +203,37 @@ productController.getProductDetail = async (req, res, next) => {
 // < 주문완료시 재고처리 오류나는거 해결 >
 // => 여러아이템에대해 재고를 한번에 업데이트할때 재고차감을 최종적으로 한번에 처리하게 변경 (위 오류나는코드에서는 checkStock에서 재고확인후 바로 차감을 했지만, 여기에선 checkStock으로 재고를 확인만 한후, 모든 아이템이 확인된후에 reduceStock에서 한번에 재고차감함)
 
-// 오더하기전 개별 아이템의 재고가 충분한지 하나씩 확인(재고가 충분할경우 바로 재고를 차감하지않고 단지 확인만 함)
+// 오더하기전 유저의 전체 주문 아이템(아이템리스트)의 재고를 checkStock을 호출하여 한 번에 확인 (위의 checkStock함수가 비동기적으로 실행됨으로, promise.all사용해 모든아이템을 체크)
+productController.checkItemListStock = async (itemList) => {
+  const insufficientStockItems = []; // 재고가 불충분한 아이템을 저장할 예정
+
+  // itemList의 모든 아이템에 대해 비동기적으로 재고 확인을 진행
+  await Promise.all(
+    // 여러 개의 비동기async 작업을 병렬로 처리하기 위해 Promise.all 사용
+    itemList.map(async (item) => {
+      // checkStock 함수를 호출하여, 각 아이템의 재고를 확인
+      const stockCheck = await productController.checkStock(item);
+
+      // itemList에 있는 각 item에 대해 개별적으로 재고를 확인후, 재고가 부족한 item을 insufficientStockItems배열에 추가(수집)하기위해 필요
+      // 재고가 부족한 경우
+      if (!stockCheck.isVerify) {
+        // 부족한 아이템과 메시지를 insufficientStockItems 배열에 저장하고, 차감하지는 않음
+        insufficientStockItems.push({ item, message: stockCheck.message });
+      }
+    })
+  );
+
+  // 모든 item에 대한 전체 재고확인후, 부족한 재고가 있는지 최종적으로 판단하기위해 필요 (재고가 부족한 아이템이 있으면 부족한 아이템 목록을 반환)
+  if (insufficientStockItems.length > 0) {
+    return insufficientStockItems; // 재고가 부족한 아이템리스트를 즉시 반환
+  }
+
+  // 모든 아이템의 재고가 충분하면, reduceStock을 호출하여 itemList의 각 아이템에 대해 재고 차감을 진행
+  await productController.reduceStock(itemList);
+  return []; // 재고 차감이 성공하면 빈 배열 반환
+};
+
+// 개별 아이템의 재고가 충분한지 하나씩 확인(재고가 충분할경우 바로 재고를 차감하지않고 단지 확인만 함)
 productController.checkStock = async (item) => {
   // 내가 사려는 아이템 재고 정보를 Product모델에서 찾음
   const product = await Product.findById(item.productId);
@@ -217,37 +247,8 @@ productController.checkStock = async (item) => {
     };
   }
 
-  // 재고가 충분하다면, 재고에서 qty를 빼지않고(재고차감은 여기서하지않음) 성공결과를 보내기
+  // 재고가 충분하다면, 여기서 재고(qty)차감은 하지않고 성공결과를 보냄
   return { isVerify: true };
-};
-
-// 오더하기전 전체 아이템(아이템리스트)의 재고를 checkStock을 호출하여 한 번에 확인하는 함수 (위의 checkStock함수가 비동기적으로 실행됨으로, promise.all사용해 모든아이템을 체크)
-productController.checkItemListStock = async (itemList) => {
-  const insufficientStockItems = []; // 재고가 불충분한 아이템을 저장할 예정
-
-  // itemList의 모든 아이템에 대해 비동기적으로 재고 확인을 진행
-  await Promise.all(
-    // 여러 개의 비동기async 작업을 병렬로 처리하기 위해 Promise.all 사용
-    itemList.map(async (item) => {
-      // 각 아이템의 재고를 확인하는 함수 호출
-      const stockCheck = await productController.checkStock(item);
-
-      // 재고가 부족한 경우
-      if (!stockCheck.isVerify) {
-        // 부족한 아이템과 메시지를 insufficientStockItems 배열에 저장하고, 차감하지는 않음
-        insufficientStockItems.push({ item, message: stockCheck.message });
-      }
-    })
-  );
-
-  // 재고가 부족한 아이템이 있으면, 부족한 아이템 목록을 반환하여 실패 처리를 함
-  if (insufficientStockItems.length > 0) {
-    return insufficientStockItems; // 재고가 부족한 아이템 리스트 반환
-  }
-
-  // 모든 아이템의 재고가 충분하면, reduceStock을 호출하여 각 아이템에 대해 재고 차감을 진행
-  await productController.reduceStock(itemList);
-  return []; // 재고 차감이 성공하면 빈 배열 반환
 };
 
 // 모든 아이템의 재고가 충분한지 확인후 실행 : 한번에 모든 상품의 재고를 차감함 (각 상품을 찾고, 해당 상품의 재고 정보를 가져온 후, 구매 수량만큼 차감하여 상품 정보를 갱신하고 저장)
@@ -256,7 +257,7 @@ productController.reduceStock = async (itemList) => {
   for (const item of itemList) {
     const product = await Product.findById(item.productId); // 해당 아이템의 상품을 찾아옴
     const newStock = { ...product.stock }; // 현재 상품의 재고 정보를 복사
-    newStock[item.size] -= item.qty; // 선택한 사이즈에대해 구매한 수량만큼 재고에서 차감
+    newStock[item.size] -= item.qty; // 선택한 사이즈에대해 구매한 수량(qty)만큼 재고에서 차감
     product.stock = newStock; // 상품에 새로 차감된 재고를 업데이트
     await product.save(); // 상품의 새로운 재고를 저장
   }
