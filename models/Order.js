@@ -34,7 +34,7 @@ orderSchema.methods.toJSON = function () {
   const obj = this._doc; // _doc은 현재 mongoose 문서에서 모든 데이터를 담고있는 객체를 가리킴
   delete obj.__v;
   delete obj.updatedAt;
-  delete obj.createdAt;
+  // delete obj.createdAt; // *** 생성날짜를 제거한채로 프론트에보냈더니 my order페이지의 주문내역들이 화면에 렌더링되지않는 오류발생
   return obj; // 위의조건들을 모두 제거한후 object를 리턴함
 };
 
