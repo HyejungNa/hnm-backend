@@ -3,6 +3,7 @@ const orderController = {};
 const Order = require("../models/Order");
 const productController = require("./product.controller");
 const { randomStringGenerator } = require("../utils/randomStringGenerator");
+const PAGE_SIZE = 3; // 한페이지당 몇개 보여줄지
 
 orderController.createOrder = async (req, res) => {
   try {
@@ -46,6 +47,7 @@ orderController.createOrder = async (req, res) => {
   }
 };
 
+// 개인유저가 주문한 내역 확인하는 my order
 orderController.getOrder = async (req, res) => {
   try {
     const { userId } = req;
@@ -55,6 +57,66 @@ orderController.getOrder = async (req, res) => {
     });
     res.status(200).json({ status: "success", data: orderList });
   } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+// admin page에서 order list
+orderController.getOrderList = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { page = 1, orderNum } = req.query; // page 기본값을 1로 설정
+
+    // 검색조건 합치기
+    let cond = {};
+    if (orderNum) {
+      cond = {
+        orderNum: { $regex: orderNum, $options: "i" },
+      };
+    }
+
+    // 주문 목록을 페이지네이션하여 가져옵니다
+    const orderList = await Order.find(cond)
+      .populate("userId")
+      .populate({
+        path: "items",
+        populate: {
+          path: "productId",
+          model: "Product",
+          select: "image name",
+        },
+      })
+      .skip((page - 1) * PAGE_SIZE)
+      .limit(PAGE_SIZE);
+
+    // 전체 주문 개수를 계산해 총 페이지 수를 구합니다
+    const totalItemNum = await Order.find(cond).countDocuments();
+    const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
+
+    res.status(200).json({ status: "success", data: orderList, totalPageNum });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+orderController.updateOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log("id", id);
+    console.log("status", status);
+    const order = await Order.findByIdAndUpdate(
+      id,
+      { status: status },
+      { new: true }
+    );
+    console.log("order", order);
+
+    if (!order) throw new Error("can not find order");
+    res.status(200).json({ status: "success", data: order });
+  } catch (error) {
+    console.error("Update Order Error:", error.message); // 오류 메시지를 출력합니다.
+
     res.status(400).json({ status: "fail", error: error.message });
   }
 };
