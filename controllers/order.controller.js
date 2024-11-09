@@ -103,19 +103,19 @@ orderController.updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    console.log("id", id);
-    console.log("status", status);
+    // console.log("id", id);
+    // console.log("status", status);
     const order = await Order.findByIdAndUpdate(
       id,
       { status: status },
       { new: true }
     );
-    console.log("order", order);
+    // console.log("order", order);
 
     if (!order) throw new Error("can not find order");
     res.status(200).json({ status: "success", data: order });
   } catch (error) {
-    console.error("Update Order Error:", error.message); // 오류 메시지를 출력합니다.
+    // console.error("Update Order Error:", error.message); // 오류 메시지를 출력합니다.
 
     res.status(400).json({ status: "fail", error: error.message });
   }

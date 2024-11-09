@@ -96,7 +96,7 @@ cartController.updateQty = async (req, res, next) => {
     await cart.save();
     res.status(200).json({ status: "success", data: cart.items });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     next(error);
   }
 };

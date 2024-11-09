@@ -90,7 +90,7 @@ productController.getProducts = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error(error); // Log the error
+    // console.error(error); // Log the error
     res.status(400).json({ status: "fail", error: error.message });
   }
 };
@@ -150,7 +150,7 @@ productController.getProductDetail = async (req, res, next) => {
 
     res.status(200).json({ status: "success", data: productDetail });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     next(error);
   }
 };
