@@ -3,7 +3,7 @@ const authController = require("../controllers/auth.controller");
 const productController = require("../controllers/product.controller");
 const router = express.Router();
 
-// 상품 생성하기 (미들웨어사용 - 상품생성전 admin체크 필수)
+// 상품 생성하기 (상품생성전 admin체크 필수 - 미들웨어사용)
 router.post(
   "/",
   authController.authenticate, // 토큰값 받기

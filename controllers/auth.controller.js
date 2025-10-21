@@ -64,7 +64,7 @@ authController.loginWithGoogle = async (req, res) => {
   }
 };
 
-// 중간에 사용되기에(미들웨어) next사용함
+// 토큰값으로 유저찾아내기, 중간에 사용되기에(미들웨어) next사용함
 authController.authenticate = async (req, res, next) => {
   try {
     const tokenString = req.headers.authorization;
