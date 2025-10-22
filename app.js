@@ -15,8 +15,10 @@ app.use("/api", indexRouter);
 
 // 백엔드 DB 주소
 const MONGODB_URI_PROD = process.env.MONGODB_URI_PROD;
-// console.log("mongouri", MONGODB_URI_PROD);
+
+// 배포용
 const mongoURI = MONGODB_URI_PROD;
+// 로컬 테스트용
 // const mongoURI = process.env.LOCAL_DB_ADDRESS;
 
 mongoose
@@ -25,5 +27,5 @@ mongoose
   .catch((err) => console.log("DB connection fail"));
 
 app.listen(process.env.PORT || 5000, () => {
-  // console.log("server on");
+  console.log("server on");
 });
