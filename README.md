@@ -1,5 +1,6 @@
 # HAME E-commerce Platform
-https://hnm-shopping-fe.netlify.app/
+[Visit HAME E-commerce website](https://hnm-shopping-fe.netlify.app/)
+<br>
 This is a full-stack e-commerce web application built with the MERN stack as a practice project.
 The project consists of two repositories:
 
