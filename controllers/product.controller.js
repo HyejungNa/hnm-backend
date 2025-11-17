@@ -1,6 +1,5 @@
 const Product = require("../models/Product");
 const productController = {};
-const PAGE_SIZE = 5;
 
 productController.createProduct = async (req, res) => {
   try {
@@ -57,13 +56,22 @@ productController.createProduct = async (req, res) => {
 //   }
 // };
 
+// url 쿼리를 통해 데이터를 가져오는 함수
 productController.getProducts = async (req, res) => {
   try {
-    const { page, name } = req.query;
-    // const cond = name ? { name: { $regex: name, $options: "i" } } : {};
-    const cond = name
-      ? { name: { $regex: name, $options: "i" }, isDeleted: false }
-      : { isDeleted: false };
+    const PAGE_SIZE = 8;
+    const { page, name, category } = req.query;
+
+    // 검색 기본 조건 : 삭제되지 않은 상품만
+    const cond = { isDeleted: false };
+
+    if (name) {
+      cond.name = { $regex: name, $options: "i" };
+    }
+
+    if (category) {
+      cond.category = { $in: [new RegExp(category, "i")] };
+    }
 
     let response = { status: "success" };
     let query = Product.find(cond);
@@ -84,7 +92,7 @@ productController.getProducts = async (req, res) => {
       response.totalPageNum = totalPageNum;
     }
 
-    // Execute the query
+    // 상픔 조회
     const productList = await query.exec();
     response.data = productList;
 
