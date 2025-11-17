@@ -11,7 +11,7 @@ router.post(
   productController.createProduct
 );
 
-// 상품 보여주기
+// admin, customer 상품 보여주기
 router.get("/", productController.getProducts);
 
 // 상품 수정하기 (상품 수정전 admin 체크필수)
